@@ -1,0 +1,31 @@
+{
+    "name": "rezzza/tk1-contexts",
+    "description": "Behatch contexts",
+    "keywords": ["BDD", "Behat", "Symfony2", "Context"],
+    "type": "behat-extension",
+    "license": "MIT",
+    "homepage": "https://github.com/rezzza/tk1-contexts",
+
+    "require": {
+        "php": ">=5.3.2",
+        "behat/behat": "~2.5",
+        "behat/symfony2-extension": "~1.1",
+        "symfony/symfony": "~2.3",
+        "atoum/atoum": "*",
+        "sanpi/behatch-contexts": "dev-behat-2.x"
+    },
+
+    "autoload": {
+        "psr-4": { "Rezzza\\Tk1\\": "src/" }
+    },
+
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1.x-dev"
+        }
+    },
+
+    "config": {
+        "bin-dir": "bin"
+    }
+}
