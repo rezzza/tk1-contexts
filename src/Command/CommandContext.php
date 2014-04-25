@@ -29,12 +29,9 @@ class CommandContext extends BehatContext implements KernelAwareInterface
         $this->kernel = $kernel;
     }
 
-    public function iRunWithArrayParameters($name, $class, $params)
+    public function iRunWithArrayParameters($name, $params)
     {
-        $command = new $class;
-
         $app = new Application($this->kernel);
-        $app->add($command);
         $app->setAutoExit(false);
 
         $this->tester = new ApplicationTester($app);
