@@ -2,20 +2,17 @@
 
 namespace Rezzza\Tk1\Behatch;
 
-use Behat\Behat\Context\BehatContext;
+use Behat\MinkExtension\Context\RawMinkContext;
+use Sanpi\Behatch\Json\Json;
 use Sanpi\Behatch\Json\JsonInspector;
 
-class ExtraJsonContext extends BehatContext
+class ExtraJsonContext extends RawMinkContext
 {
     private $asserter;
 
-    private $behatchCtx;
-
-    public function __construct($asserter, $behatchCtx)
+    public function __construct($asserter, $evaluationMode)
     {
         $this->asserter = $asserter;
-        $this->behatchCtx = $behatchCtx;
-        $evaluationMode = $this->getMainContext()->getSubContext($this->behatchCtx)->getParameter('json', 'evaluation_mode');
         $this->inspector = new JsonInspector($evaluationMode);
     }
 
@@ -27,10 +24,10 @@ class ExtraJsonContext extends BehatContext
         $from = parse_url(
             $this->inspector->evaluate($this->getJson(), $node)
         );
-        $this->sortQuery($from);
+        $from['query'] = $this->sortQuery($from);
 
         $to = parse_url($url);
-        $this->sortQuery($to);
+        $to['query'] = $this->sortQuery($to);
 
         $this->asserter
             // uses phpArray when https://github.com/atoum/atoum/issues/326 will be fixed.
