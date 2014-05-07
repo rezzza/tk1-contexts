@@ -46,17 +46,17 @@ class CommandContext extends BehatContext implements KernelAwareInterface
     /**
      * Runs symfony command with provided parameters
      *
-     * @When /^I run "([^"]*)" from class "([^"]*)" with parameters:$/
+     * @When /^I run "([^"]*)" command with parameters:$/
      */
-    public function iRunWithParameters($name, $class, PyStringNode $params)
+    public function iRunWithParameters($name, PyStringNode $params)
     {
         $params = json_decode($params->getRaw(), true);
 
         if (null === $params) {
-            throw new \InvalidArgumentException('Args in runBanCustomerCommand could not be converted in json');
+            throw new \InvalidArgumentException('Args in command could not be converted in json');
         }
 
-        return $this->iRunWithArrayParameters($name, $class, $params);
+        return $this->iRunWithArrayParameters($name, $params);
     }
 
     /**
