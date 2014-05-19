@@ -15,6 +15,10 @@
         "sanpi/behatch-contexts": "dev-behat-2.x"
     },
 
+    "suggest": {
+        "rezzza/time-traveler" : "To use the time traveler context."
+    },
+
     "autoload": {
         "psr-4": { "Rezzza\\Tk1\\": "src/" }
     },
