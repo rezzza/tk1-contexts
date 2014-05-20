@@ -126,6 +126,7 @@ class CommandContext extends BehatContext implements KernelAwareInterface
     }
 
     /**
+     * @Then /^I should see the last command output$/
      * @Then /^print last command output$/
      */
     public function iShouldSeeTheLastCommandOutput()
