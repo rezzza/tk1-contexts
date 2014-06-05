@@ -136,17 +136,17 @@ class CommandContext extends BehatContext implements KernelAwareInterface
         echo str_pad('> End last command output ', 80, '-') . PHP_EOL;
     }
 
-    private function getExitCode()
+    public function getExitCode()
     {
         return $this->tester->getStatusCode() !== null ? $this->tester->getStatusCode() : 1;
     }
 
-    private function getExpectedOutput(PyStringNode $expectedText)
+    public function getExpectedOutput(PyStringNode $expectedText)
     {
         return strtr($expectedText, array('\'\'\'' => '"""'));
     }
 
-    private function getOutput()
+    public function getOutput()
     {
         return $this->tester->getDisplay(true);
     }
