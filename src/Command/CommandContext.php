@@ -84,6 +84,19 @@ class CommandContext extends BehatContext implements KernelAwareInterface
     }
 
     /**
+     * Checks whether last command output matches provided string.
+     *
+     * @Then the output should match:
+     *
+     * @param PyStringNode $text PyString text instance
+     */
+    public function theOutputShouldMatch(PyStringNode $text)
+    {
+        $this->asserter->string($this->getOutput())->match($this->getExpectedOutput($text));
+    }
+
+
+    /**
      * Checks whether last command output contains provided string.
      *
      * @Then the output should contain:
