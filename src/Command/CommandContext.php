@@ -2,16 +2,16 @@
 
 namespace Rezzza\Tk1\Command;
 
-use Behat\Behat\Context\BehatContext;
-use Behat\Behat\Context\Step;
+use mageekguy\atoum\asserter;
+use Behat\Behat\Context\Context as BehatContext;
 use Behat\Gherkin\Node\PyStringNode;
-use Behat\Symfony2Extension\Context\KernelAwareInterface;
+use Behat\Symfony2Extension\Context\KernelAwareContext;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Console\Tester\ApplicationTester;
 
-class CommandContext extends BehatContext implements KernelAwareInterface
+class CommandContext implements BehatContext, KernelAwareContext
 {
     private $kernel;
 
@@ -19,9 +19,9 @@ class CommandContext extends BehatContext implements KernelAwareInterface
 
     private $tester;
 
-    public function __construct($asserter)
+    public function __construct()
     {
-        $this->asserter = $asserter;
+        $this->asserter = new asserter\generator;
     }
 
     public function setKernel(KernelInterface $kernel)
@@ -132,10 +132,8 @@ class CommandContext extends BehatContext implements KernelAwareInterface
      */
     public function itShouldPassWith($success, PyStringNode $text)
     {
-        return array(
-            new Step\Given(sprintf('the command should %s', $success)),
-            new Step\Then('the output should contain:', $text)
-        );
+        $this->itShouldPass($success);
+        $this->theOutputShouldContain($text);
     }
 
     /**
@@ -151,7 +149,7 @@ class CommandContext extends BehatContext implements KernelAwareInterface
 
     public function getExitCode()
     {
-        return $this->tester->getStatusCode() !== null ? $this->tester->getStatusCode() : 1;
+        return $this->getTester()->getStatusCode() !== null ? $this->getTester()->getStatusCode() : 1;
     }
 
     public function getExpectedOutput(PyStringNode $expectedText)
@@ -161,6 +159,25 @@ class CommandContext extends BehatContext implements KernelAwareInterface
 
     public function getOutput()
     {
-        return $this->tester->getDisplay(true);
+        return $this->getTester()->getDisplay(true);
+    }
+
+    public function getKernel()
+    {
+        return $this->kernel;
+    }
+
+    public function getContainer()
+    {
+        return $this->kernel->getContainer();
+    }
+
+    private function getTester()
+    {
+        if (null === $this->tester) {
+            throw new \LogicException('You should call iRunWithArrayParameters method to get the tester available');
+        }
+
+        return $this->tester;
     }
 }
