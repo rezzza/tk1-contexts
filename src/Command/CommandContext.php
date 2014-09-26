@@ -8,20 +8,36 @@ use Behat\Gherkin\Node\PyStringNode;
 use Behat\Symfony2Extension\Context\KernelAwareInterface;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Console\Tester\ApplicationTester;
+use mageekguy\atoum\asserter;
 
 class CommandContext extends BehatContext implements KernelAwareInterface
 {
+    /** @var KernelInterface */
     private $kernel;
 
+    /** @var asserter\generator  */
     private $asserter;
 
+    /** @var ApplicationTester */
     private $tester;
 
-    public function __construct($asserter)
+    /** @var int Terminal width used during output */
+    private $terminalWidth;
+    /** @var int Terminal height used during output */
+    private $terminalHeight;
+
+    /**
+     * Constructor
+     * @param asserter\generator $asserter       Asserter
+     * @param int                $terminalWidth  Terminal width used during output
+     * @param int                $terminalHeight Terminal height used during output
+     */
+    public function __construct($asserter, $terminalWidth = 640, $terminalHeight = 300)
     {
         $this->asserter = $asserter;
+        $this->terminalWidth = $terminalWidth;
+        $this->terminalHeight = $terminalHeight;
     }
 
     public function setKernel(KernelInterface $kernel)
@@ -33,6 +49,7 @@ class CommandContext extends BehatContext implements KernelAwareInterface
     {
         $app = new Application($this->kernel);
         $app->setAutoExit(false);
+        $app->setTerminalDimensions($this->terminalWidth, $this->terminalHeight);
 
         $this->tester = new ApplicationTester($app);
         $this->tester->run(array_merge(
