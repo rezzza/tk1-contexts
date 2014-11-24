@@ -112,6 +112,17 @@ class CommandContext extends BehatContext implements KernelAwareInterface
         $this->asserter->string($this->getOutput())->match($this->getExpectedOutput($text));
     }
 
+    /**
+     * Checks whether last command output matches N times the provided string.
+     *
+     * @Then /^the output should match (\d+) times:$/
+     */
+    public function theOutputShouldMatchNTimes($nb, PyStringNode $text)
+    {
+        preg_match_all($this->getExpectedOutput($text), $this->getOutput(), $matches);
+
+        $this->asserter->phpArray($matches[0])->hasSize($nb);
+    }
 
     /**
      * Checks whether last command output contains provided string.
