@@ -1,4 +1,5 @@
 composer.lock
+bin/*
 
 # Symfony directories
 vendor/*
