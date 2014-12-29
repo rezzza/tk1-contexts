@@ -31,8 +31,8 @@ class BenchmarkContext extends BehatContext
         $url = $this->baseUrl.'/'.ltrim($url, '/');
         $request = $this->httpClient->createRequest($method, $url);
 
-        $this->benchmark = new Benchmark\HttpResponseTimeBenchmark($request, $nbRequest);
-        $this->benchmark->start($this->httpClient, new Benchmark\HttpTimeDataCollector($percentile));
+        $this->benchmark = new HttpResponseTimeBenchmark($request, $nbRequest);
+        $this->benchmark->start($this->httpClient, new HttpTimeDataCollector($percentile));
     }
 
     /**
