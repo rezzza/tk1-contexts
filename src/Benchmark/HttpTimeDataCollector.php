@@ -43,16 +43,25 @@ class HttpTimeDataCollector implements \IteratorAggregate
         $this->minTime = $this->computeMinTime();
     }
 
+    /**
+     * @return float in milliseconds
+     */
     public function getAverageTime()
     {
         return $this->averageTime;
     }
 
+    /**
+     * @return float in milliseconds
+     */
     public function getMaxTime()
     {
         return $this->maxTime;
     }
 
+    /**
+     * @return float in milliseconds
+     */
     public function getMinTime()
     {
         return $this->minTime;
