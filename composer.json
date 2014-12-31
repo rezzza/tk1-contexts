@@ -16,7 +16,8 @@
     },
 
     "suggest": {
-        "rezzza/time-traveler" : "To use the time traveler context."
+        "rezzza/time-traveler" : "To use the time traveler context.",
+        "guzzle/http" : "To use the benchmark context."
     },
 
     "autoload": {
