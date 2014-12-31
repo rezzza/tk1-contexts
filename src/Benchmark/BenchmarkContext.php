@@ -33,7 +33,7 @@ class BenchmarkContext extends BehatContext
         $request = $this->httpClient->createRequest($method, $url);
 
         $this->benchmark = new HttpResponseTimeBenchmark($request, $nbRequest);
-        $this->benchmark->start($this->httpClient, new HttpTimeDataCollector($percentile), new HttpErrorCollector());
+        $this->benchmark->start($this->httpClient, new HttpTimeDataCollector($percentile), $this->asserter, 'application/json');
     }
 
     /**

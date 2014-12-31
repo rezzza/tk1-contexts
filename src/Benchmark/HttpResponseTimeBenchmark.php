@@ -4,7 +4,9 @@ namespace Rezzza\Tk1\Benchmark;
 
 use Guzzle\Http\Exception\RequestException;
 use Guzzle\Http\Message\Request;
+use Guzzle\Http\Message\Response;
 use Guzzle\Http\Client as HttpClient;
+use mageekguy\atoum\asserter;
 
 class HttpResponseTimeBenchmark
 {
@@ -17,33 +19,34 @@ class HttpResponseTimeBenchmark
     /** @var HttpTimeDataCollector */
     private $httpTimeDataCollector;
 
-    /** @var HttpErrorCollector */
-    private $httpErrorCollector;
-
     public function __construct(Request $request, $nbCalls)
     {
         $this->request = $request;
         $this->nbCalls = $nbCalls;
     }
 
-    public function start(HttpClient $httpClient, HttpTimeDataCollector $httpTimeDataCollector, HttpErrorCollector $httpErrorCollector)
+    public function start(HttpClient $httpClient, HttpTimeDataCollector $httpTimeDataCollector, asserter\generator $asserter, $expectedResponseContentType)
     {
         for ($i = 0; $i <= $this->nbCalls; $i++) {
             $response = $this->performCall($httpClient);
 
+            $this->checkForHttpError($response, $asserter, $expectedResponseContentType);
+
             if ($i > 0) {
                 // We don't count the first result as we want to be sure to collect time on cached requests
                 $httpTimeDataCollector->collect($response->getInfo('total_time'));
-                $httpErrorCollector->collect($response);
             }
         }
 
         $httpTimeDataCollector->computeResults();
-        $httpErrorCollector->computeResults();
         $this->httpTimeDataCollector = $httpTimeDataCollector;
-        $this->httpErrorCollector = $httpErrorCollector;
     }
 
+    /**
+     * @param float $averageTimeMaxRequired In milliseconds
+     *
+     * @return bool
+     */
     public function isAverageTimeLessThan($averageTimeMaxRequired)
     {
         $averageTime = $this->httpTimeDataCollector->getAverageTime();
@@ -52,7 +55,7 @@ class HttpResponseTimeBenchmark
     }
 
     /**
-     * @return float in milli seconds
+     * @return float in milliseconds
      */
     public function getAverageTime()
     {
@@ -75,10 +78,11 @@ class HttpResponseTimeBenchmark
             $this->httpTimeDataCollector->getAverageTime(),
             $this->httpTimeDataCollector->getMaxTime()
         ).PHP_EOL;
-
-        echo sprintf('with %s/%s HTTP errors.', count($this->httpErrorCollector->getErrors()), $this->httpErrorCollector->getNbResponse()) . PHP_EOL;
     }
 
+    /**
+     * @return array|\Guzzle\Http\Message\Response|null
+     */
     private function performCall(HttpClient $httpClient)
     {
         try {
@@ -91,5 +95,26 @@ class HttpResponseTimeBenchmark
 
             return $response;
         }
+    }
+
+    /**
+     * @param Response           $response
+     * @param asserter\generator $asserter
+     * @param string             $expectedResponseContentType application/json|application/xml
+     */
+    private function checkForHttpError(Response $response, asserter\generator $asserter, $expectedResponseContentType)
+    {
+        if ($response->isError() || $this->isHttpErrorFatal($response, $expectedResponseContentType)) {
+            $asserter->boolean(true)
+                ->isTrue('Benchmarking encountered a Fatal Error');
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    private function isHttpErrorFatal(Response $response, $expectedResponseContentType)
+    {
+        return $response->isSuccessful() && $response->getContentType() != $expectedResponseContentType;
     }
 }
