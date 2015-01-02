@@ -10,6 +10,7 @@ class BenchmarkContext extends BehatContext
 {
     private $httpClient;
 
+    /** @var HttpResponseTimeBenchmark */
     private $benchmark;
 
     private $asserter;
@@ -32,7 +33,7 @@ class BenchmarkContext extends BehatContext
         $request = $this->httpClient->createRequest($method, $url);
 
         $this->benchmark = new HttpResponseTimeBenchmark($request, $nbRequest);
-        $this->benchmark->start($this->httpClient, new HttpTimeDataCollector($percentile));
+        $this->benchmark->start($this->httpClient, new HttpTimeDataCollector($percentile), $this->asserter, 'application/json');
     }
 
     /**
@@ -45,16 +46,16 @@ class BenchmarkContext extends BehatContext
     }
 
     /**
-     * @Then /^response average time should be inferior to (?P<averageTimeRequired>\d+) ms with (?P<burstTolerancePerent>\d+)% burst tolerance$/
+     * @Then /^response average time should be inferior to (?P<averageTimeRequired>\d+) ms with (?P<burstTolerancePercent>\d+)% burst tolerance$/
      */
-    public function responseAverageTimeShouldBeInferiorToMsWithBurstTolerance($averageTimeRequired, $burstTolerancePerent)
+    public function responseAverageTimeShouldBeInferiorToMsWithBurstTolerance($averageTimeRequired, $burstTolerancePercent)
     {
         $this->guardBenchmarkStarted();
-        $maxAverageTime = $averageTimeRequired * (1 + ($burstTolerancePerent / 100));
+        $maxAverageTime = $averageTimeRequired * (1 + ($burstTolerancePercent / 100));
 
         $this->asserter
             ->boolean($this->benchmark->isAverageTimeLessThan($maxAverageTime))
-                ->isTrue()
+                ->isTrue(sprintf('Average time is %s ms, should be less than %s ms.', $this->benchmark->getAverageTime(), $maxAverageTime))
         ;
     }
 
