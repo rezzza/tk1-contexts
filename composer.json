@@ -7,17 +7,34 @@
     "homepage": "https://github.com/rezzza/tk1-contexts",
 
     "require": {
-        "php": ">=5.3.3",
-        "behat/behat": "~2.5",
-        "behat/symfony2-extension": "~1.1",
-        "symfony/symfony": "~2.3",
-        "atoum/atoum": "~1.0",
-        "behatch/contexts": "dev-behat-2.x"
+        "php": ">=5.3.3"
     },
 
     "suggest": {
         "rezzza/time-traveler" : "To use the time traveler context.",
-        "guzzle/http" : "To use the benchmark context."
+        "guzzle/guzzle" : "To use the benchmark context.",
+        "behat/behat": "To use json, benchmark & command contexts.",
+        "behat/symfony2-extension": "To use command context",
+        "symfony/symfony": "To use command & time traveler contexts",
+        "atoum/atoum": "To use benchmark, command & json contexts",
+        "behatch/contexts": "To use json context"
+    },
+
+    "require-dev": {
+        "behat/behat": "~2.5",
+        "behat/symfony2-extension": "~1.1",
+        "symfony/symfony": "~2.3",
+        "atoum/atoum": "~1.0",
+        "behatch/contexts": "dev-behat-2.x",
+        "guzzle/guzzle" : "~3.9, < 4.0"
+    },
+
+    "conflict": {
+        "behat/behat": "< 2.5",
+        "behat/symfony2-extension": "< 1.1",
+        "symfony/symfony": "< 2.3",
+        "atoum/atoum": "< 1.0",
+        "guzzle/guzzle" : "< 3.0"
     },
 
     "autoload": {
@@ -26,7 +43,7 @@
 
     "extra": {
         "branch-alias": {
-            "dev-master": "1.1.x-dev"
+            "dev-master": "1.2.x-dev"
         }
     },
 
