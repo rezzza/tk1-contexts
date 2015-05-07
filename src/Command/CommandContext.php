@@ -40,11 +40,18 @@ class CommandContext extends BehatContext implements KernelAwareInterface
         $this->terminalHeight = $terminalHeight;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function setKernel(KernelInterface $kernel)
     {
         $this->kernel = $kernel;
     }
 
+    /**
+     * @param string $name
+     * @param array $params
+     */
     public function iRunWithArrayParameters($name, $params)
     {
         $app = new Application($this->kernel);
@@ -64,6 +71,8 @@ class CommandContext extends BehatContext implements KernelAwareInterface
      * Runs symfony command with provided parameters
      *
      * @When /^I run "([^"]*)" command with parameters:$/
+     * @param string       $name
+     * @param PyStringNode $params
      */
     public function iRunWithParameters($name, PyStringNode $params)
     {
@@ -77,7 +86,7 @@ class CommandContext extends BehatContext implements KernelAwareInterface
     }
 
     /**
-     * Checks whether previously runned command failed|passed.
+     * Checks whether previously run command failed|passed.
      *
      * @Then /^the command should (fail|pass)$/
      *
@@ -116,6 +125,8 @@ class CommandContext extends BehatContext implements KernelAwareInterface
      * Checks whether last command output matches N times the provided string.
      *
      * @Then /^the output should match (\d+) times:$/
+     * @param int          $nb
+     * @param PyStringNode $text
      */
     public function theOutputShouldMatchNTimes($nb, PyStringNode $text)
     {
@@ -129,7 +140,6 @@ class CommandContext extends BehatContext implements KernelAwareInterface
      *
      * @Then the output should contain:
      *
-     * @param string $not
      * @param PyStringNode $text PyString text instance
      */
     public function theOutputShouldContain(PyStringNode $text)
@@ -142,7 +152,6 @@ class CommandContext extends BehatContext implements KernelAwareInterface
      *
      * @Then the output should not contain:
      *
-     * @param string $not
      * @param PyStringNode $text PyString text instance
      */
     public function theOutputShouldNotContain(PyStringNode $text)
@@ -151,12 +160,14 @@ class CommandContext extends BehatContext implements KernelAwareInterface
     }
 
     /**
-     * Checks whether previously runned command passes|failes with provided output.
+     * Checks whether previously run command passes|fails with provided output.
      *
      * @Then /^the command should (fail|pass) with:$/
      *
      * @param string $success "fail" or "pass"
      * @param PyStringNode $text PyString text instance
+     *
+     * @return \Behat\Behat\Context\Step\SubstepInterface[]
      */
     public function itShouldPassWith($success, PyStringNode $text)
     {
@@ -177,16 +188,25 @@ class CommandContext extends BehatContext implements KernelAwareInterface
         echo str_pad('> End last command output ', 80, '-') . PHP_EOL;
     }
 
+    /**
+     * @return int 0 success otherwise fail
+     */
     public function getExitCode()
     {
         return $this->tester->getStatusCode() !== null ? $this->tester->getStatusCode() : 1;
     }
 
+    /**
+     * @return string
+     */
     public function getExpectedOutput(PyStringNode $expectedText)
     {
         return strtr($expectedText, array('\'\'\'' => '"""'));
     }
 
+    /**
+     * @return string
+     */
     public function getOutput()
     {
         return $this->tester->getDisplay(true);
