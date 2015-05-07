@@ -54,14 +54,40 @@ class CommandContext extends BehatContext implements KernelAwareInterface
      */
     public function iRunWithArrayParameters($name, $params)
     {
-        $app = new Application($this->kernel);
-        $app->setAutoExit(false);
-        $app->setTerminalDimensions($this->terminalWidth, $this->terminalHeight);
+        $application = $this->initApplication();
 
-        $this->tester = new ApplicationTester($app);
+        $this->tester = new ApplicationTester($application);
         $this->tester->run(array_merge(
             array(
                 'command' => $name
+            ),
+            $params
+        ));
+    }
+
+    /**
+     * @param string $name
+     * @param array  $params
+     * @param string $dialogString
+     */
+    public function iRunDialogConsoleWithArrayParameters($name, array $params, $dialogString = 'Y')
+    {
+        $application = $this->initApplication();
+
+        $this->tester = $applicationTester = new ApplicationTester($application);
+
+        // Application needs to be run one time before calling find()
+        // Otherwise for some reason CLI services are not injected in DIC
+        $applicationTester->run(array());
+
+        $command = $application->find($name);
+
+        $dialog = $command->getHelper('dialog');
+        $dialog->setInputStream($this->getInputStream($dialogString));
+
+        $this->tester->run(array_merge(
+            array(
+                'command' => $command->getName()
             ),
             $params
         ));
@@ -76,13 +102,22 @@ class CommandContext extends BehatContext implements KernelAwareInterface
      */
     public function iRunWithParameters($name, PyStringNode $params)
     {
-        $params = json_decode($params->getRaw(), true);
+        $params = $this->guardAgainstInvalidCommandParams($params);
 
-        if (null === $params) {
-            throw new \InvalidArgumentException('Args in command could not be converted in json');
-        }
+        $this->iRunWithArrayParameters($name, $params);
+    }
 
-        return $this->iRunWithArrayParameters($name, $params);
+    /**
+     * @When /^I run "(?P<commandCliName>[^"]+)" command confirming with "(?P<dialogString>[^"]+)" with parameters:$/
+     * @param string       $commandCliName
+     * @param string       $dialogString
+     * @param PyStringNode $params
+     */
+    public function iRunDialogConsoleWithParameters($commandCliName, $dialogString, PyStringNode $params)
+    {
+        $params = $this->guardAgainstInvalidCommandParams($params);
+
+        $this->iRunDialogConsoleWithArrayParameters($commandCliName, $params, $dialogString);
     }
 
     /**
@@ -210,5 +245,46 @@ class CommandContext extends BehatContext implements KernelAwareInterface
     public function getOutput()
     {
         return $this->tester->getDisplay(true);
+    }
+
+    /**
+     * @param string $input
+     *
+     * @return resource
+     */
+    private function getInputStream($input)
+    {
+        $stream = fopen('php://memory', 'r+', false);
+        fputs($stream, $input);
+        rewind($stream);
+
+        return $stream;
+    }
+
+    /**
+     * @param PyStringNode $params
+     *
+     * @return array
+     */
+    private function guardAgainstInvalidCommandParams(PyStringNode $params)
+    {
+        $params = json_decode($params->getRaw(), true);
+
+        if (null === $params) {
+            throw new \InvalidArgumentException('Args in command could not be converted in json');
+        }
+
+        return $params;
+    }
+
+    /**
+     * @return Application
+     */
+    private function initApplication()
+    {
+        $application = new Application($this->kernel);
+        $application->setAutoExit(false);
+
+        return $application->setTerminalDimensions($this->terminalWidth, $this->terminalHeight);
     }
 }
