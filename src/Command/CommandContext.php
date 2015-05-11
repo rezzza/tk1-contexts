@@ -40,18 +40,23 @@ class CommandContext extends BehatContext implements KernelAwareInterface
         $this->terminalHeight = $terminalHeight;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function setKernel(KernelInterface $kernel)
     {
         $this->kernel = $kernel;
     }
 
+    /**
+     * @param string $name
+     * @param array $params
+     */
     public function iRunWithArrayParameters($name, $params)
     {
-        $app = new Application($this->kernel);
-        $app->setAutoExit(false);
-        $app->setTerminalDimensions($this->terminalWidth, $this->terminalHeight);
+        $application = $this->initApplication();
 
-        $this->tester = new ApplicationTester($app);
+        $this->tester = new ApplicationTester($application);
         $this->tester->run(array_merge(
             array(
                 'command' => $name
@@ -61,23 +66,62 @@ class CommandContext extends BehatContext implements KernelAwareInterface
     }
 
     /**
-     * Runs symfony command with provided parameters
-     *
-     * @When /^I run "([^"]*)" command with parameters:$/
+     * @param string $name
+     * @param array  $params
+     * @param string $dialogString
      */
-    public function iRunWithParameters($name, PyStringNode $params)
+    public function iRunDialogConsoleWithArrayParameters($name, array $params, $dialogString = 'Y')
     {
-        $params = json_decode($params->getRaw(), true);
+        $application = $this->initApplication();
 
-        if (null === $params) {
-            throw new \InvalidArgumentException('Args in command could not be converted in json');
-        }
+        $this->tester = $applicationTester = new ApplicationTester($application);
 
-        return $this->iRunWithArrayParameters($name, $params);
+        // Application needs to be run one time before calling find()
+        // Otherwise for some reason CLI services are not injected in DIC
+        $applicationTester->run(array());
+
+        $command = $application->find($name);
+
+        $dialog = $command->getHelper('dialog');
+        $dialog->setInputStream($this->getInputStream($dialogString));
+
+        $this->tester->run(array_merge(
+            array(
+                'command' => $command->getName()
+            ),
+            $params
+        ));
     }
 
     /**
-     * Checks whether previously runned command failed|passed.
+     * Runs symfony command with provided parameters
+     *
+     * @When /^I run "([^"]*)" command with parameters:$/
+     * @param string       $name
+     * @param PyStringNode $params
+     */
+    public function iRunWithParameters($name, PyStringNode $params)
+    {
+        $params = $this->guardAgainstInvalidCommandParams($params);
+
+        $this->iRunWithArrayParameters($name, $params);
+    }
+
+    /**
+     * @When /^I run "(?P<commandCliName>[^"]+)" command confirming with "(?P<dialogString>[^"]+)" with parameters:$/
+     * @param string       $commandCliName
+     * @param string       $dialogString
+     * @param PyStringNode $params
+     */
+    public function iRunDialogConsoleWithParameters($commandCliName, $dialogString, PyStringNode $params)
+    {
+        $params = $this->guardAgainstInvalidCommandParams($params);
+
+        $this->iRunDialogConsoleWithArrayParameters($commandCliName, $params, $dialogString);
+    }
+
+    /**
+     * Checks whether previously run command failed|passed.
      *
      * @Then /^the command should (fail|pass)$/
      *
@@ -116,6 +160,8 @@ class CommandContext extends BehatContext implements KernelAwareInterface
      * Checks whether last command output matches N times the provided string.
      *
      * @Then /^the output should match (\d+) times:$/
+     * @param int          $nb
+     * @param PyStringNode $text
      */
     public function theOutputShouldMatchNTimes($nb, PyStringNode $text)
     {
@@ -129,7 +175,6 @@ class CommandContext extends BehatContext implements KernelAwareInterface
      *
      * @Then the output should contain:
      *
-     * @param string $not
      * @param PyStringNode $text PyString text instance
      */
     public function theOutputShouldContain(PyStringNode $text)
@@ -142,7 +187,6 @@ class CommandContext extends BehatContext implements KernelAwareInterface
      *
      * @Then the output should not contain:
      *
-     * @param string $not
      * @param PyStringNode $text PyString text instance
      */
     public function theOutputShouldNotContain(PyStringNode $text)
@@ -151,12 +195,14 @@ class CommandContext extends BehatContext implements KernelAwareInterface
     }
 
     /**
-     * Checks whether previously runned command passes|failes with provided output.
+     * Checks whether previously run command passes|fails with provided output.
      *
      * @Then /^the command should (fail|pass) with:$/
      *
      * @param string $success "fail" or "pass"
      * @param PyStringNode $text PyString text instance
+     *
+     * @return \Behat\Behat\Context\Step\SubstepInterface[]
      */
     public function itShouldPassWith($success, PyStringNode $text)
     {
@@ -177,18 +223,68 @@ class CommandContext extends BehatContext implements KernelAwareInterface
         echo str_pad('> End last command output ', 80, '-') . PHP_EOL;
     }
 
+    /**
+     * @return int 0 success otherwise fail
+     */
     public function getExitCode()
     {
         return $this->tester->getStatusCode() !== null ? $this->tester->getStatusCode() : 1;
     }
 
+    /**
+     * @return string
+     */
     public function getExpectedOutput(PyStringNode $expectedText)
     {
         return strtr($expectedText, array('\'\'\'' => '"""'));
     }
 
+    /**
+     * @return string
+     */
     public function getOutput()
     {
         return $this->tester->getDisplay(true);
+    }
+
+    /**
+     * @param string $input
+     *
+     * @return resource
+     */
+    private function getInputStream($input)
+    {
+        $stream = fopen('php://memory', 'r+', false);
+        fputs($stream, $input);
+        rewind($stream);
+
+        return $stream;
+    }
+
+    /**
+     * @param PyStringNode $params
+     *
+     * @return array
+     */
+    private function guardAgainstInvalidCommandParams(PyStringNode $params)
+    {
+        $params = json_decode($params->getRaw(), true);
+
+        if (null === $params) {
+            throw new \InvalidArgumentException('Args in command could not be converted in json');
+        }
+
+        return $params;
+    }
+
+    /**
+     * @return Application
+     */
+    private function initApplication()
+    {
+        $application = new Application($this->kernel);
+        $application->setAutoExit(false);
+
+        return $application->setTerminalDimensions($this->terminalWidth, $this->terminalHeight);
     }
 }
