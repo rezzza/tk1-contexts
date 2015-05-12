@@ -12,7 +12,7 @@
         "behat/symfony2-extension": "~2.0",
         "symfony/symfony": "~2.3",
         "atoum/atoum": "*",
-        "sanpi/behatch-contexts": "dev-master"
+        "behatch/contexts": "~2.1"
     },
 
     "suggest": {
