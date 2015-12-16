@@ -153,7 +153,7 @@ class CommandContext extends BehatContext implements KernelAwareInterface
      */
     public function theOutputShouldMatch(PyStringNode $text)
     {
-        $this->asserter->string($this->getOutput())->match($this->getExpectedOutput($text));
+        $this->asserter->phpString($this->getOutput())->match($this->getExpectedOutput($text));
     }
 
     /**
@@ -179,7 +179,7 @@ class CommandContext extends BehatContext implements KernelAwareInterface
      */
     public function theOutputShouldContain(PyStringNode $text)
     {
-        $this->asserter->string($this->getOutput())->contains($this->getExpectedOutput($text));
+        $this->asserter->phpString($this->getOutput())->contains($this->getExpectedOutput($text));
     }
 
     /**
@@ -191,7 +191,7 @@ class CommandContext extends BehatContext implements KernelAwareInterface
      */
     public function theOutputShouldNotContain(PyStringNode $text)
     {
-        $this->asserter->string($this->getOutput())->notContains($this->getExpectedOutput($text));
+        $this->asserter->phpString($this->getOutput())->notContains($this->getExpectedOutput($text));
     }
 
     /**
